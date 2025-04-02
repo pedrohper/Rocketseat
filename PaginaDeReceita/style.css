@@ -1,0 +1,40 @@
+body {
+    background-image: url(images/bg-image.png);
+    background-size: cover;
+    font-family: "Alice", serif;
+    line-height: 150%;
+    
+}
+img {
+    border-radius: 16px;
+}
+
+#page {
+    box-sizing: border-box;
+    width: 800px;
+    margin: 48px auto;
+    background-color: #F0E8C2;
+    padding: 24px;
+    border-radius: 24px;
+
+}
+
+h1, h2 {
+    color: #291B1A;
+    font-size: 2em;
+}
+
+p, ul, li {
+    color: #573A37;
+}
+
+#about, #ingredient, #preparation {
+    margin: 24px;
+}
+
+footer {
+    color: #F0E8C2;
+    text-align: center;
+    padding-bottom: 48px;
+    font-weight: bolder;
+}
