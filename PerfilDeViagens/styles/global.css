@@ -45,3 +45,13 @@ a:hover {
 .bg-surface-color {
     background-color: var(--surface-color);
 }
+
+/* utility-first */
+
+.grid {
+    display: grid;
+}
+
+.grid-flow-column {
+    grid-auto-flow: column;
+}
