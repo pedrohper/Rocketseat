@@ -1,0 +1,97 @@
+* {
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+}
+
+:root {
+    --red: #E3646E;
+    --purple: #BB72E9;
+    --blue: #3996DB;
+    --green: #82BC4F;
+    --yellow: #EABD5F;
+
+    --gray-100: #0D0E11;
+    --gray-200: #16181D;
+    --gray-300: #292C34;
+    --gray-400: #878EA1;
+    --gray-500: #C0C4CE;
+    --gray-600: #E2E4E9;
+
+    --font-primary: "Asap", sans-serif;
+    --font-secondary: "Inconsolata", monospace;
+    --font-accent: "Maven Pro", sans-serif;
+
+    --title-lg: bold 56px/120% "Asap", sans-serif;
+    --tittle-md: bold 24px/120%  "Asap", sans-serif;
+    --title-sm: bold 16px/120% "Asap", sans-serif;
+
+    --subtitle: 400 20px/120% "Inconsolata", monospace;
+
+    --text-md: 400 16px/140%  "Maven Pro", sans-serif;
+    --text-sm: 400 14px/140%  "Maven Pro", sans-serif;
+}
+
+body {
+    background-color: var(--gray-200);
+    color: var(--gray-500)
+}
+
+img {
+    max-width: 100%;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+h1, h2, h3 {
+    font: inherit;
+}
+
+.container {
+    max-width: 100vw;  
+    padding-inline: 32px;
+    margin-inline: auto;
+}
+
+strong {
+    color: var(--red);
+    font-weight: 400;
+}
+
+span {
+    text-align: center;
+    font: var(--subtitle);
+}
+
+h3 {
+    font: var(--title-lg);
+    text-align: center;
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 120%;
+}
+
+h4 {
+    color: var(--Base-gray-600, #E2E4E9);
+
+    font-family: "Asap";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 120%;
+}
+
+p {
+    color: var(--Base-gray-500, #C0C4CE);
+    
+    text-align: center;
+    font-family: "Maven Pro";
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 140%;
+}
