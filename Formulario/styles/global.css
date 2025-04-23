@@ -22,3 +22,7 @@ body {
     --semantic-error: #DC2626;
 
 }
+
+body {
+    overflow: hidden;
+}
