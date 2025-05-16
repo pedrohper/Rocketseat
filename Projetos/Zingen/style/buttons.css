@@ -1,6 +1,6 @@
 .btn {
     --btn-bg-color: var(--text-color-primary);
-    --btn-color: var(--bg-color)
+    --btn-color: var(--bg-color);
 
     border: 0;
     background-color: transparent;

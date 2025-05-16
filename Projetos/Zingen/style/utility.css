@@ -51,6 +51,7 @@ v
 
 @media (width >= 80em) {
     .container{
+    max-width: var(--max-width);
     --max-width: 80rem;  
     }
 

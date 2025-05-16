@@ -1,0 +1,17 @@
+header {
+    display: flex;
+    justify-content: space-between;
+    background-color: var(--surface-color);
+}
+
+.navbar {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+@media (width <= 60rem) {
+    .remove {
+        display: none;
+    }
+}

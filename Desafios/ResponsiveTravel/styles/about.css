@@ -1,0 +1,41 @@
+.about {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--surface-color);
+}
+
+.main {
+    display: flex;
+    gap: 2rem;
+}
+
+.info {
+    flex-direction: column;
+    display: flex;
+    padding-right: 10rem;
+    gap: 1rem;
+}
+
+.line {
+    display: flex;
+}
+
+@media (width <= 60rem) {
+    .about {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .main {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .main img {
+        width: 7.5rem;
+        height: 7.5rem;
+        object-fit: cover;
+}
+}
