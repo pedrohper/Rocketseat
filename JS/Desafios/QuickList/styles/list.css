@@ -1,0 +1,31 @@
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    border-radius: 8px;
+    justify-content: center;
+    margin: 1rem auto;
+}
+
+.item {
+    position: relative;
+    display: flex;
+    gap: 1rem;
+    padding: .75rem 1rem;
+    align-items: center;
+    gap: 0.75rem;
+    border-radius: 0.75rem;
+    background-color: var(--always-white);
+
+    & img {
+        cursor: pointer;
+    }
+}
+
+.delete {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+}

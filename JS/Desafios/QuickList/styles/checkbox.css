@@ -1,0 +1,21 @@
+.checkbox {
+  cursor: pointer;
+}
+
+.checkbox input {
+  display: none;
+}
+
+.checkbox span {
+  background-image: url(../assets/state=Default.svg);
+  background-size: cover;
+  transition: 0.3s;
+}
+
+.checkbox:hover span {
+  background-image: url(../assets/state=hover.svg);
+}
+
+.checkbox input:checked + span {
+  background-image: url(../assets/state=selected.svg);
+}

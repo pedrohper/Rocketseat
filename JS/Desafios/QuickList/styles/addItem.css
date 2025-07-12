@@ -1,0 +1,43 @@
+.addItem {
+  display: flex;
+  justify-content: flex-start;
+  gap: 1rem;
+  margin: 0 auto;
+  flex-direction: row;
+}
+
+#input {
+  display: flex;
+  padding: 1rem 1.125rem;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1 0 0;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+  transition: 0.3s;
+  width: 100%;
+  border-color: var(--border-primary);
+  height: 2.75rem;
+
+}
+
+#input:hover {
+  border-color: var(--border-primary);
+}
+
+#input:focus {
+  border-color: var(--color-brand-hover);
+}
+
+#input::placeholder {
+  color: var(--content-tertiary);
+}
+
+@media (width <= 60rem) {
+    .addItem {
+      margin-top: 2rem;
+      flex-direction: column;
+    }
+}

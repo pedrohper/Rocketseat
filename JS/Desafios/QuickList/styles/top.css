@@ -1,0 +1,13 @@
+.top {
+    display: flex;
+    justify-content: flex-start;
+    gap: 1rem;
+    margin: 1rem auto;
+    flex-direction: column;
+}
+
+@media (width <= 60rem) {
+    .top {
+        margin-top: 2rem;
+    }
+}

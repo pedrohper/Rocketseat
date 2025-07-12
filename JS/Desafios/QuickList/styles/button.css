@@ -1,0 +1,25 @@
+#btn {
+    display: flex;
+    height: 2.75rem;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 8px;
+    border: 0;
+    background-color: #CA3884;
+    cursor: pointer;
+
+    color: #ffffff;
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 1.25rem;
+    letter-spacing: -0.04rem;
+
+    padding: 1rem;
+}
+
+#btn:hover {
+  background-color: var(--color-brand-hover);
+}
