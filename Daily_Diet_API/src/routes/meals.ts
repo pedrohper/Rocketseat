@@ -4,11 +4,19 @@ import { z } from 'zod'
 import { knex } from '../database'
 import { checkSessionIdExists } from '../middleware/check-session-id-exists'
 
+/**
+ * 💡 AULÃO GUANABARA - Rotas, Middlewares e Regras de Negócio no Fastify:
+ * 
+ * 1. 'preHandler': É o Leão de Chácara (Middleware). Roda ANTES da função principal da rota.
+ *    Aqui, o 'checkSessionIdExists' garante que só usuários autenticados via Cookie entrem.
+ * 2. 'knex(...)': É o nosso construtor de consultas SQL em TypeScript sem precisar escrever SQL na mão.
+ */
 export async function mealRoutes(app: FastifyInstance) {
+  // Rota para listar todas as refeições do usuário autenticado
   app.get(
     '/',
     {
-      preHandler: [checkSessionIdExists],
+      preHandler: [checkSessionIdExists], // 🛡️ Leão de chácara: checa o Cookie antes!
     },
     async (req) => {
       const meals = await knex('meals')
@@ -20,6 +28,7 @@ export async function mealRoutes(app: FastifyInstance) {
     },
   )
 
+  // Rota para calcular as estatísticas da dieta do usuário
   app.get(
     '/metrics',
     {
@@ -35,14 +44,16 @@ export async function mealRoutes(app: FastifyInstance) {
       const totalMealsOnDiet = meals.filter((meal) => meal.is_on_diet).length
       const totalMealsOffDiet = meals.filter((meal) => !meal.is_on_diet).length
 
+      // 🧠 ALGORITMO GUANABARA: Descobre a maior sequência consecutiva de refeições dentro da dieta!
       const { bestOnDietSequence } = meals.reduce(
         (acc, meal) => {
           if (meal.is_on_diet) {
-            acc.currentSequence += 1
+            acc.currentSequence += 1 // Se tá na dieta, o contador sobe!
           } else {
-            acc.currentSequence = 0
+            acc.currentSequence = 0  // Se saiu da dieta, zera a sequência atual!
           }
 
+          // Se a sequência atual bateu o recorde anterior, atualiza o recorde!
           if (acc.currentSequence > acc.bestOnDietSequence) {
             acc.bestOnDietSequence = acc.currentSequence
           }
@@ -58,6 +69,7 @@ export async function mealRoutes(app: FastifyInstance) {
           totalMealsOnDiet,
           totalMealsOffDiet,
           bestOnDietSequence,
+
         },
       }
     },

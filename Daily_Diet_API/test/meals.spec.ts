@@ -3,6 +3,15 @@ import req from 'supertest'
 import { app } from '../src/app'
 import { knex } from '../src/database'
 
+/**
+ * 💡 AULÃO GUANABARA - Testes E2E (End-to-End) com Vitest e Supertest:
+ * 
+ * 1. 'beforeAll': Aguarda o servidor Fastify ficar pronto (app.ready()) antes de rodar os testes.
+ * 2. 'afterAll': Fecha o servidor ao terminar tudo para liberar a porta.
+ * 3. 'beforeEach': Limpa o banco de dados e roda as migrations do zero antes de CADA teste.
+ *    Isso garante que um teste nunca afete o resultado de outro teste (Isolamento!).
+ * 4. 'supertest(app.server)': Simula um cliente de verdade fazendo chamadas HTTP para a API!
+ */
 describe('Meals routes', () => {
   beforeAll(async () => {
     await app.ready()
@@ -13,11 +22,12 @@ describe('Meals routes', () => {
   })
 
   beforeEach(async () => {
-    await knex.migrate.rollback(undefined, true)
-    await knex.migrate.latest()
+    await knex.migrate.rollback(undefined, true) // Limpa a sujeira do teste anterior!
+    await knex.migrate.latest()                   // Recria as tabelas limpinhas!
   })
 
   it('should be able to create a new meal', async () => {
+    // 1. Cria um usuário de teste e captura o Cookie de sessão retornado
     const createUserResponse = await req(app.server)
       .post('/users')
       .send({
@@ -28,6 +38,7 @@ describe('Meals routes', () => {
     const cookies = createUserResponse.get('Set-Cookie') ?? []
 
     await req(app.server)
+
       .post('/meals')
       .set('Cookie', cookies)
       .send({
