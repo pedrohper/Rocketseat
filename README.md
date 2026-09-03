@@ -11,6 +11,7 @@ Este repositório reúne projetos, desafios práticos e exercícios desenvolvido
 | [**🎟️ Ticket API**](./Ticket_API) | API RESTful de gerenciamento de tickets de suporte construída **100% nativa sem frameworks**. | Node.js (HTTP, Streams, Buffers, FS), ES Modules |
 | [**🥗 Daily Diet API**](./Daily_Diet_API) | API RESTful para controle e monitoramento de dieta diária, métricas e usuários. | Fastify, TypeScript, Knex.js, SQLite3, Zod, Vitest |
 | [**✂️ Hair Day**](./Projeto%20Hair%20Day) | Aplicação Web para agendamento de cortes de cabelo com controle de datas e horários. | JavaScript, Webpack, Babel, Day.js, JSON Server |
+| [**💪 Gympass App**](./Gympass_App) | API de check-in em academias com arquitetura SOLID, Prisma ORM e Docker. | Fastify, TypeScript, Prisma ORM, PostgreSQL, Zod, Vitest |
 
 ---
 
@@ -35,6 +36,13 @@ Interface web de agendamento de serviços em salão de cabeleireiro:
 * Manipulação de datas e horários utilizando **Day.js**.
 * Bundling e transpilação com **Webpack** e **Babel**.
 * API mockada com **JSON Server** para simulação de requisições HTTP em ambiente de desenvolvimento.
+
+### 💪 [Gympass App](./Gympass_App)
+API de check-in em academias por geolocalização construída com arquitetura corporativa:
+* Aplicação rigorosa dos princípios **SOLID** e **Repository Pattern** (abstração de banco de dados).
+* Mapeamento de dados relacional com **Prisma ORM** e conteinerização do PostgreSQL via **Docker Compose**.
+* Validação e tipagem estática com **TypeScript** e **Zod**.
+
 
 ---
 
