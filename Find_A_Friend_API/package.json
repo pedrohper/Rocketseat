@@ -1,0 +1,26 @@
+{
+  "name": "find_a_friend_api",
+  "version": "1.0.0",
+  "description": "- [ ] Deve ser possível cadastrar uma ORG\r - [ ] Deve ser possível uma ORG se autenticar (Login)\r - [ ] Deve ser possível cadastrar um Pet\r - [ ] Deve ser possível listar todos os pets disponíveis para adoção em uma cidade\r - [ ] Deve ser possível filtrar pets por características (idade, porte, nível de energia, etc.)\r - [ ] Deve ser possível visualizar os detalhes de um pet específico",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsup src",
+    "start": "node build/server.js",
+    "postinstall": "prisma skills sync || exit 0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/node": "^22.20.2",
+    "prisma": "^8.0.0-rc.14",
+    "tsup": "^8.5.1",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "fastify": "^5.12.4"
+  }
+}

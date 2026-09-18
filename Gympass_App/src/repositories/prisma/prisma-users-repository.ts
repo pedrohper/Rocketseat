@@ -1,14 +1,12 @@
 import { prisma } from '@/lib/prisma'
-import { Prisma } from '@prisma/client'
+import { Prisma, type User } from '@prisma/client'
 import type { UsersRepository } from '@/repositories/users-repository'
 
 export class PrismaUsersRepository implements UsersRepository {
   async findByEmail(email: string) {
-    const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    })
+      findById(id: string): Promise<User | null> {
+    throw new Error('Method not implemented.')
+  }
 
     return user
   }
