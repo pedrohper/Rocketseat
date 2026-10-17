@@ -1,32 +1,39 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Org {
-  id       String  @id @default(uuid())
-  email    String  @unique
-  password String?
-  address  String?
-  phone    String?
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  password_hash String
+  whatsapp      String
+  address       String
+  city          String
+  created_at    DateTime @default(now())
 
-  pets     Pet[]
+  pets          Pet[]
 
   @@map("orgs")
 }
 
 model Pet {
-  id      String   @id @default(uuid())
-  name    String
-  age     Int?
-  size    Decimal?
+  id           String   @id @default(uuid())
+  name         String
+  about        String?
+  age          String
+  size         String
+  energy_level String
+  environment  String
+  created_at   DateTime @default(now())
 
-  org_id  String
-  org     Org      @relation(fields: [org_id], references: [id])
+  org_id       String
+  org          Org      @relation(fields: [org_id], references: [id])
 
   @@map("pets")
 }
