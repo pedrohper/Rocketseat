@@ -1,29 +1,41 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
-import { registerUseCase } from '@/use-cases/register'
+import { RegisterUseCase } from '@/use-cases/register'
+import { PrismaOrgsRepository } from '@/repositories/prisma/prisma-orgs-repository'
+import { OrgAlreadyExistsError } from '@/use-cases/errors/org-already-exists-error'
 
-export async function register (req, rep){
-    const registerBodySchema = z.object({
-        name: z.string(),
-        email: z.string().email(),
-        password: z.string().min(6),
-        adress: z.string(),
-        whatsapp: z.string(),
-        city: z.string,
+export async function register(request: FastifyRequest, reply: FastifyReply) {
+  const registerBodySchema = z.object({
+    name: z.string(),
+    email: z.string().email(),
+    password: z.string().min(6),
+    address: z.string(),
+    whatsapp: z.string(),
+    city: z.string(),
+  })
+
+  const { name, email, password, address, whatsapp, city } =
+    registerBodySchema.parse(request.body)
+
+  try {
+    const orgsRepository = new PrismaOrgsRepository()
+    const registerUseCase = new RegisterUseCase(orgsRepository)
+
+    await registerUseCase.execute({
+      name,
+      email,
+      password,
+      address,
+      whatsapp,
+      city,
     })
+  } catch (err) {
+    if (err instanceof OrgAlreadyExistsError) {
+      return reply.status(409).send({ message: err.message })
+    }
 
-    try {
-        await registerUseCase({
-          name,
-          email,
-          password,
-          adress,
-          whatsapp,
-          city,
-        })
-      } catch (err) {
-        return reply.status(409).send()
-      }
-    
-      return reply.status(201).send()
+      throw err
+    }
+
+  return reply.status(201).send()
 }
