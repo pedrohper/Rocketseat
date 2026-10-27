@@ -1,0 +1,739 @@
+diff --git a/Find_A_Friend_API/package.json b/Find_A_Friend_API/package.json
+index 0af4e63..b9282c0 100644
+--- a/Find_A_Friend_API/package.json
++++ b/Find_A_Friend_API/package.json
+@@ -33,10 +33,11 @@
+     "typescript": "^5.7.3",
+     "typescript-eslint": "8.70.0",
+     "vite-tsconfig-paths": "4.0.5",
+-    "vitest": "0.28.5",
++    "vitest": "0.28.5"
+   },
+   "dependencies": {
+     "@prisma/client": "6.19.3",
++    "bcryptjs": "^3.0.2",
+     "fastify": "^5.12.4",
+     "zod": "4.6.5"
+   }
+diff --git a/Find_A_Friend_API/src/http/controllers/org/register.ts b/Find_A_Friend_API/src/http/controllers/orgs/register.ts
+similarity index 54%
+rename from Find_A_Friend_API/src/http/controllers/org/register.ts
+rename to Find_A_Friend_API/src/http/controllers/orgs/register.ts
+index b366aaf..94e075f 100644
+--- a/Find_A_Friend_API/src/http/controllers/org/register.ts
++++ b/Find_A_Friend_API/src/http/controllers/orgs/register.ts
+@@ -1,41 +1,31 @@
++import { OrgAlreadyExistsError } from '@/use-cases/errors/org-already-exists-error'
++import { makeRegisterOrgUseCase } from '@/use-cases/factories/make-register-org-use-case'
+ import { FastifyReply, FastifyRequest } from 'fastify'
+ import { z } from 'zod'
+-import { RegisterUseCase } from '@/use-cases/org/register'
+-import { PrismaOrgsRepository } from '@/repositories/prisma/prisma-orgs-repository'
+-import { OrgAlreadyExistsError } from '@/use-cases/errors/org-already-exists-error'
+ 
+ export async function register(request: FastifyRequest, reply: FastifyReply) {
+   const registerBodySchema = z.object({
+     name: z.string(),
+     email: z.string().email(),
+     password: z.string().min(6),
+-    address: z.string(),
+     whatsapp: z.string(),
++    address: z.string(),
+     city: z.string(),
+   })
+ 
+-  const { name, email, password, address, whatsapp, city } =
+-    registerBodySchema.parse(request.body)
++  const data = registerBodySchema.parse(request.body)
+ 
+   try {
+-    const orgsRepository = new PrismaOrgsRepository()
+-    const registerUseCase = new RegisterUseCase(orgsRepository)
++    const registerOrgUseCase = makeRegisterOrgUseCase()
+ 
+-    await registerUseCase.execute({
+-      name,
+-      email,
+-      password,
+-      address,
+-      whatsapp,
+-      city,
+-    })
++    await registerOrgUseCase.execute(data)
+   } catch (err) {
+     if (err instanceof OrgAlreadyExistsError) {
+       return reply.status(409).send({ message: err.message })
+     }
+ 
+-      throw err
+-    }
++    throw err
++  }
+ 
+   return reply.status(201).send()
+-}
+\ No newline at end of file
++}
+diff --git a/Find_A_Friend_API/src/http/controllers/pet/register.ts b/Find_A_Friend_API/src/http/controllers/pet/register.ts
+deleted file mode 100644
+index f9a50e9..0000000
+--- a/Find_A_Friend_API/src/http/controllers/pet/register.ts
++++ /dev/null
+@@ -1,41 +0,0 @@
+-import { FastifyReply, FastifyRequest } from 'fastify'
+-import { z } from 'zod'
+-import { RegisterUseCase } from '@/use-cases/org/register'
+-import { PrismaOrgsRepository } from '@/repositories/prisma/prisma-pets-repository'
+-import { OrgAlreadyExistsError } from '@/use-cases/errors/pets-already-exists-error'
+-
+-export async function register(request: FastifyRequest, reply: FastifyReply) {
+-  const registerBodySchema = z.object({
+-    name: z.string(),
+-    email: z.string().email(),
+-    password: z.string().min(6),
+-    address: z.string(),
+-    whatsapp: z.string(),
+-    city: z.string(),
+-  })
+-
+-  const { name, email, password, address, whatsapp, city } =
+-    registerBodySchema.parse(request.body)
+-
+-  try {
+-    const petsRepository = new PrismaOrgsRepository()
+-    const registerUseCase = new RegisterUseCase(orgsRepository)
+-
+-    await registerUseCase.execute({
+-      name,
+-      email,
+-      password,
+-      address,
+-      whatsapp,
+-      city,
+-    })
+-  } catch (err) {
+-    if (err instanceof PetAlreadyExistsError) {
+-      return reply.status(409).send({ message: err.message })
+-    }
+-
+-      throw err
+-    }
+-
+-  return reply.status(201).send()
+-}
+\ No newline at end of file
+diff --git a/Find_A_Friend_API/src/http/controllers/pets/create.ts b/Find_A_Friend_API/src/http/controllers/pets/create.ts
+new file mode 100644
+index 0000000..44c329b
+--- /dev/null
++++ b/Find_A_Friend_API/src/http/controllers/pets/create.ts
+@@ -0,0 +1,37 @@
++import { OrgNotFoundError } from '@/use-cases/errors/org-not-found-error'
++import { makeCreatePetUseCase } from '@/use-cases/factories/make-create-pet-use-case'
++import { FastifyReply, FastifyRequest } from 'fastify'
++import { z } from 'zod'
++
++export async function create(request: FastifyRequest, reply: FastifyReply) {
++  const createPetParamsSchema = z.object({
++    orgId: z.string().uuid(),
++  })
++
++  const createPetBodySchema = z.object({
++    name: z.string(),
++    about: z.string().nullable().optional(),
++    age: z.string(),
++    size: z.string(),
++    energyLevel: z.string(),
++    environment: z.string(),
++  })
++
++  // TODO: quando o login (JWT) estiver pronto, trocar por request.user.sub
++  const { orgId } = createPetParamsSchema.parse(request.params)
++  const data = createPetBodySchema.parse(request.body)
++
++  try {
++    const createPetUseCase = makeCreatePetUseCase()
++
++    const { pet } = await createPetUseCase.execute({ ...data, orgId })
++
++    return reply.status(201).send({ pet })
++  } catch (err) {
++    if (err instanceof OrgNotFoundError) {
++      return reply.status(404).send({ message: err.message })
++    }
++
++    throw err
++  }
++}
+diff --git a/Find_A_Friend_API/src/http/controllers/user/user-register.ts b/Find_A_Friend_API/src/http/controllers/user/user-register.ts
+deleted file mode 100644
+index d25507d..0000000
+--- a/Find_A_Friend_API/src/http/controllers/user/user-register.ts
++++ /dev/null
+@@ -1,37 +0,0 @@
+-import { FastifyReply, FastifyRequest } from 'fastify'
+-import { z } from 'zod'
+-import { RegisterUseCase } from '@/use-cases/org/register'
+-import { PrismaUsersRepository } from '@/repositories/prisma/prisma-orgs-repository'
+-import { UserAlreadyExistsError } from '@/use-cases/errors/org-already-exists-error'
+-
+-export async function register(request: FastifyRequest, reply: FastifyReply) {
+-  const registerBodySchema = z.object({
+-    name: z.string(),
+-    email: z.string().email(),
+-    password: z.string().min(6),
+-    city: z.string(),
+-  })
+-
+-  const { name, email, password, city } =
+-    registerBodySchema.parse(request.body)
+-
+-  try {
+-    const usersRepository = new PrismaUsersRepository()
+-    const registerUseCase = new RegisterUseCase(usersRepository)
+-
+-    await registerUseCase.execute({
+-      name,
+-      email,
+-      password,
+-      city,
+-    })
+-  } catch (err) {
+-    if (err instanceof UserAlreadyExistsError) {
+-      return reply.status(409).send({ message: err.message })
+-    }
+-
+-      throw err
+-    }
+-
+-  return reply.status(201).send()
+-}
+\ No newline at end of file
+diff --git a/Find_A_Friend_API/src/http/routes.ts b/Find_A_Friend_API/src/http/routes.ts
+index 1d026c0..f4e2106 100644
+--- a/Find_A_Friend_API/src/http/routes.ts
++++ b/Find_A_Friend_API/src/http/routes.ts
+@@ -1,6 +1,8 @@
+ import { FastifyInstance } from 'fastify'
+-import { register } from './controllers/register'
++import { register } from './controllers/orgs/register'
++import { create } from './controllers/pets/create'
+ 
+ export async function appRoutes(app: FastifyInstance) {
+   app.post('/orgs', register)
++  app.post('/orgs/:orgId/pets', create)
+ }
+diff --git a/Find_A_Friend_API/src/in-memory/in-memory-orgs-repository.ts b/Find_A_Friend_API/src/in-memory/in-memory-orgs-repository.ts
+deleted file mode 100644
+index e69de29..0000000
+diff --git a/Find_A_Friend_API/src/in-memory/in-memory-users-repository.ts b/Find_A_Friend_API/src/in-memory/in-memory-users-repository.ts
+deleted file mode 100644
+index a37b888..0000000
+--- a/Find_A_Friend_API/src/in-memory/in-memory-users-repository.ts
++++ /dev/null
+@@ -1,30 +0,0 @@
+-import { UsersRepository } from '@/repositories/users-repository'
+-import { User, Prisma } from '@prisma/client'
+-
+-export class InMemoryUsersRepository implements UsersRepository {
+-  public items: User[] = []
+-
+-  async findByEmail(email: string) {
+-    const user = this.items.find((item) => item.email === email)
+-
+-    if (!user) {
+-      return null
+-    }
+-
+-    return user
+-  }
+-
+-  async create(data: Prisma.UserCreateInput) {
+-    const user = {
+-      id: 'user-1',
+-      name: data.name,
+-      email: data.email,
+-      password_hash: data.password_hash,
+-      created_at: new Date(),
+-    }
+-
+-    this.items.push(user)
+-
+-    return user
+-  }
+-}
+\ No newline at end of file
+diff --git a/Find_A_Friend_API/src/repositories/in-memory/in-memory-orgs-repository.ts b/Find_A_Friend_API/src/repositories/in-memory/in-memory-orgs-repository.ts
+new file mode 100644
+index 0000000..dc9df25
+--- /dev/null
++++ b/Find_A_Friend_API/src/repositories/in-memory/in-memory-orgs-repository.ts
+@@ -0,0 +1,32 @@
++import { Org, Prisma } from '@prisma/client'
++import { randomUUID } from 'node:crypto'
++import { OrgsRepository } from '../orgs-repository'
++
++export class InMemoryOrgsRepository implements OrgsRepository {
++  public items: Org[] = []
++
++  async findById(id: string) {
++    return this.items.find((item) => item.id === id) ?? null
++  }
++
++  async findByEmail(email: string) {
++    return this.items.find((item) => item.email === email) ?? null
++  }
++
++  async create(data: Prisma.OrgCreateInput) {
++    const org: Org = {
++      id: data.id ?? randomUUID(),
++      name: data.name,
++      email: data.email,
++      password_hash: data.password_hash,
++      whatsapp: data.whatsapp,
++      address: data.address,
++      city: data.city,
++      created_at: new Date(),
++    }
++
++    this.items.push(org)
++
++    return org
++  }
++}
+diff --git a/Find_A_Friend_API/src/repositories/in-memory/in-memory-pets-repository.ts b/Find_A_Friend_API/src/repositories/in-memory/in-memory-pets-repository.ts
+new file mode 100644
+index 0000000..a3f5a67
+--- /dev/null
++++ b/Find_A_Friend_API/src/repositories/in-memory/in-memory-pets-repository.ts
+@@ -0,0 +1,25 @@
++import { Pet, Prisma } from '@prisma/client'
++import { randomUUID } from 'node:crypto'
++import { PetsRepository } from '../pets-repository'
++
++export class InMemoryPetsRepository implements PetsRepository {
++  public items: Pet[] = []
++
++  async create(data: Prisma.PetUncheckedCreateInput) {
++    const pet: Pet = {
++      id: data.id ?? randomUUID(),
++      name: data.name,
++      about: data.about ?? null,
++      age: data.age,
++      size: data.size,
++      energy_level: data.energy_level,
++      environment: data.environment,
++      org_id: data.org_id,
++      created_at: new Date(),
++    }
++
++    this.items.push(pet)
++
++    return pet
++  }
++}
+diff --git a/Find_A_Friend_API/src/repositories/orgs-repository.ts b/Find_A_Friend_API/src/repositories/orgs-repository.ts
+index 3f59107..f5f7056 100644
+--- a/Find_A_Friend_API/src/repositories/orgs-repository.ts
++++ b/Find_A_Friend_API/src/repositories/orgs-repository.ts
+@@ -1,6 +1,7 @@
+-import { Prisma, Org } from '@prisma/client'
++import { Org, Prisma } from '@prisma/client'
+ 
+ export interface OrgsRepository {
++  findById(id: string): Promise<Org | null>
+   findByEmail(email: string): Promise<Org | null>
+   create(data: Prisma.OrgCreateInput): Promise<Org>
+ }
+diff --git a/Find_A_Friend_API/src/repositories/pets-repository.ts b/Find_A_Friend_API/src/repositories/pets-repository.ts
+new file mode 100644
+index 0000000..411834d
+--- /dev/null
++++ b/Find_A_Friend_API/src/repositories/pets-repository.ts
+@@ -0,0 +1,5 @@
++import { Pet, Prisma } from '@prisma/client'
++
++export interface PetsRepository {
++  create(data: Prisma.PetUncheckedCreateInput): Promise<Pet>
++}
+diff --git a/Find_A_Friend_API/src/repositories/prisma/prisma-orgs-repository.ts b/Find_A_Friend_API/src/repositories/prisma/prisma-orgs-repository.ts
+index 9d8d903..9c02359 100644
+--- a/Find_A_Friend_API/src/repositories/prisma/prisma-orgs-repository.ts
++++ b/Find_A_Friend_API/src/repositories/prisma/prisma-orgs-repository.ts
+@@ -3,21 +3,15 @@ import { Prisma } from '@prisma/client'
+ import { OrgsRepository } from '../orgs-repository'
+ 
+ export class PrismaOrgsRepository implements OrgsRepository {
+-  async findByEmail(email: string) {
+-    const org = await prisma.org.findUnique({
+-      where: {
+-        email,
+-      },
+-    })
++  async findById(id: string) {
++    return prisma.org.findUnique({ where: { id } })
++  }
+ 
+-    return org
++  async findByEmail(email: string) {
++    return prisma.org.findUnique({ where: { email } })
+   }
+ 
+   async create(data: Prisma.OrgCreateInput) {
+-    const org = await prisma.org.create({
+-      data,
+-    })
+-
+-    return org
++    return prisma.org.create({ data })
+   }
+-}
+\ No newline at end of file
++}
+diff --git a/Find_A_Friend_API/src/repositories/prisma/prisma-pets-repository.ts b/Find_A_Friend_API/src/repositories/prisma/prisma-pets-repository.ts
+new file mode 100644
+index 0000000..577a033
+--- /dev/null
++++ b/Find_A_Friend_API/src/repositories/prisma/prisma-pets-repository.ts
+@@ -0,0 +1,9 @@
++import { prisma } from '@/lib/prisma'
++import { Prisma } from '@prisma/client'
++import { PetsRepository } from '../pets-repository'
++
++export class PrismaPetsRepository implements PetsRepository {
++  async create(data: Prisma.PetUncheckedCreateInput) {
++    return prisma.pet.create({ data })
++  }
++}
+diff --git a/Find_A_Friend_API/src/use-cases/create-pet.spec.ts b/Find_A_Friend_API/src/use-cases/create-pet.spec.ts
+new file mode 100644
+index 0000000..d8bc71f
+--- /dev/null
++++ b/Find_A_Friend_API/src/use-cases/create-pet.spec.ts
+@@ -0,0 +1,48 @@
++import { InMemoryOrgsRepository } from '@/repositories/in-memory/in-memory-orgs-repository'
++import { InMemoryPetsRepository } from '@/repositories/in-memory/in-memory-pets-repository'
++import { beforeEach, describe, expect, it } from 'vitest'
++import { CreatePetUseCase } from './create-pet'
++import { OrgNotFoundError } from './errors/org-not-found-error'
++
++let petsRepository: InMemoryPetsRepository
++let orgsRepository: InMemoryOrgsRepository
++let sut: CreatePetUseCase
++
++const petData = {
++  name: 'Rex',
++  about: 'Muito brincalhão',
++  age: 'filhote',
++  size: 'pequeno',
++  energyLevel: 'alta',
++  environment: 'casa com quintal',
++}
++
++describe('Create Pet Use Case', () => {
++  beforeEach(() => {
++    petsRepository = new InMemoryPetsRepository()
++    orgsRepository = new InMemoryOrgsRepository()
++    sut = new CreatePetUseCase(petsRepository, orgsRepository)
++  })
++
++  it('should be able to create a pet', async () => {
++    const org = await orgsRepository.create({
++      name: 'Amigos de Patas',
++      email: 'contato@amigosdepatas.com',
++      password_hash: 'hash',
++      whatsapp: '34999999999',
++      address: 'Rua Exemplo, 100',
++      city: 'Uberlândia',
++    })
++
++    const { pet } = await sut.execute({ ...petData, orgId: org.id })
++
++    expect(pet.id).toEqual(expect.any(String))
++    expect(pet.org_id).toEqual(org.id)
++  })
++
++  it('should not be able to create a pet for a non-existing org', async () => {
++    await expect(() =>
++      sut.execute({ ...petData, orgId: 'org-inexistente' }),
++    ).rejects.toBeInstanceOf(OrgNotFoundError)
++  })
++})
+diff --git a/Find_A_Friend_API/src/use-cases/create-pet.ts b/Find_A_Friend_API/src/use-cases/create-pet.ts
+new file mode 100644
+index 0000000..7c96c9f
+--- /dev/null
++++ b/Find_A_Friend_API/src/use-cases/create-pet.ts
+@@ -0,0 +1,53 @@
++import { OrgsRepository } from '@/repositories/orgs-repository'
++import { PetsRepository } from '@/repositories/pets-repository'
++import { Pet } from '@prisma/client'
++import { OrgNotFoundError } from './errors/org-not-found-error'
++
++interface CreatePetUseCaseRequest {
++  orgId: string
++  name: string
++  about?: string | null
++  age: string
++  size: string
++  energyLevel: string
++  environment: string
++}
++
++interface CreatePetUseCaseResponse {
++  pet: Pet
++}
++
++export class CreatePetUseCase {
++  constructor(
++    private petsRepository: PetsRepository,
++    private orgsRepository: OrgsRepository,
++  ) {}
++
++  async execute({
++    orgId,
++    name,
++    about,
++    age,
++    size,
++    energyLevel,
++    environment,
++  }: CreatePetUseCaseRequest): Promise<CreatePetUseCaseResponse> {
++    const org = await this.orgsRepository.findById(orgId)
++
++    if (!org) {
++      throw new OrgNotFoundError()
++    }
++
++    const pet = await this.petsRepository.create({
++      org_id: orgId,
++      name,
++      about,
++      age,
++      size,
++      energy_level: energyLevel,
++      environment,
++    })
++
++    return { pet }
++  }
++}
+diff --git a/Find_A_Friend_API/src/use-cases/errors/org-not-found-error.ts b/Find_A_Friend_API/src/use-cases/errors/org-not-found-error.ts
+new file mode 100644
+index 0000000..2858c2c
+--- /dev/null
++++ b/Find_A_Friend_API/src/use-cases/errors/org-not-found-error.ts
+@@ -0,0 +1,5 @@
++export class OrgNotFoundError extends Error {
++  constructor() {
++    super('Org not found.')
++  }
++}
+diff --git a/Find_A_Friend_API/src/use-cases/factories/make-create-pet-use-case.ts b/Find_A_Friend_API/src/use-cases/factories/make-create-pet-use-case.ts
+new file mode 100644
+index 0000000..0b86955
+--- /dev/null
++++ b/Find_A_Friend_API/src/use-cases/factories/make-create-pet-use-case.ts
+@@ -0,0 +1,10 @@
++import { PrismaOrgsRepository } from '@/repositories/prisma/prisma-orgs-repository'
++import { PrismaPetsRepository } from '@/repositories/prisma/prisma-pets-repository'
++import { CreatePetUseCase } from '../create-pet'
++
++export function makeCreatePetUseCase() {
++  const petsRepository = new PrismaPetsRepository()
++  const orgsRepository = new PrismaOrgsRepository()
++
++  return new CreatePetUseCase(petsRepository, orgsRepository)
++}
+diff --git a/Find_A_Friend_API/src/use-cases/factories/make-register-org-use-case.ts b/Find_A_Friend_API/src/use-cases/factories/make-register-org-use-case.ts
+new file mode 100644
+index 0000000..685b6c7
+--- /dev/null
++++ b/Find_A_Friend_API/src/use-cases/factories/make-register-org-use-case.ts
+@@ -0,0 +1,8 @@
++import { PrismaOrgsRepository } from '@/repositories/prisma/prisma-orgs-repository'
++import { RegisterOrgUseCase } from '../register-org'
++
++export function makeRegisterOrgUseCase() {
++  const orgsRepository = new PrismaOrgsRepository()
++
++  return new RegisterOrgUseCase(orgsRepository)
++}
+diff --git a/Find_A_Friend_API/src/use-cases/pet/register.ts b/Find_A_Friend_API/src/use-cases/pet/register.ts
+deleted file mode 100644
+index e69de29..0000000
+diff --git a/Find_A_Friend_API/src/use-cases/register-org.spec.ts b/Find_A_Friend_API/src/use-cases/register-org.spec.ts
+new file mode 100644
+index 0000000..6165c87
+--- /dev/null
++++ b/Find_A_Friend_API/src/use-cases/register-org.spec.ts
+@@ -0,0 +1,46 @@
++import { InMemoryOrgsRepository } from '@/repositories/in-memory/in-memory-orgs-repository'
++import { compare } from 'bcryptjs'
++import { beforeEach, describe, expect, it } from 'vitest'
++import { OrgAlreadyExistsError } from './errors/org-already-exists-error'
++import { RegisterOrgUseCase } from './register-org'
++
++let orgsRepository: InMemoryOrgsRepository
++let sut: RegisterOrgUseCase
++
++const orgData = {
++  name: 'Amigos de Patas',
++  email: 'contato@amigosdepatas.com',
++  password: '123456',
++  whatsapp: '34999999999',
++  address: 'Rua Exemplo, 100',
++  city: 'Uberlândia',
++}
++
++describe('Register Org Use Case', () => {
++  beforeEach(() => {
++    orgsRepository = new InMemoryOrgsRepository()
++    sut = new RegisterOrgUseCase(orgsRepository)
++  })
++
++  it('should be able to register an org', async () => {
++    const { org } = await sut.execute(orgData)
++
++    expect(org.id).toEqual(expect.any(String))
++  })
++
++  it('should hash org password upon registration', async () => {
++    const { org } = await sut.execute(orgData)
++
++    const isPasswordCorrectlyHashed = await compare('123456', org.password_hash)
++
++    expect(isPasswordCorrectlyHashed).toBe(true)
++  })
++
++  it('should not be able to register with same email twice', async () => {
++    await sut.execute(orgData)
++
++    await expect(() => sut.execute(orgData)).rejects.toBeInstanceOf(
++      OrgAlreadyExistsError,
++    )
++  })
++})
+diff --git a/Find_A_Friend_API/src/use-cases/org/register.ts b/Find_A_Friend_API/src/use-cases/register-org.ts
+similarity index 63%
+rename from Find_A_Friend_API/src/use-cases/org/register.ts
+rename to Find_A_Friend_API/src/use-cases/register-org.ts
+index 6e00dc3..2c3bd47 100644
+--- a/Find_A_Friend_API/src/use-cases/org/register.ts
++++ b/Find_A_Friend_API/src/use-cases/register-org.ts
+@@ -1,8 +1,9 @@
+ import { OrgsRepository } from '@/repositories/orgs-repository'
+-import { OrgAlreadyExistsError } from '@/use-cases/errors/org-already-exists-error'
++import { Org } from '@prisma/client'
+ import { hash } from 'bcryptjs'
++import { OrgAlreadyExistsError } from './errors/org-already-exists-error'
+ 
+-interface RegisterUseCaseRequest {
++interface RegisterOrgUseCaseRequest {
+   name: string
+   email: string
+   password: string
+@@ -11,7 +12,11 @@ interface RegisterUseCaseRequest {
+   city: string
+ }
+ 
+-export class RegisterUseCase {
++interface RegisterOrgUseCaseResponse {
++  org: Org
++}
++
++export class RegisterOrgUseCase {
+   constructor(private orgsRepository: OrgsRepository) {}
+ 
+   async execute({
+@@ -21,16 +26,16 @@ export class RegisterUseCase {
+     whatsapp,
+     address,
+     city,
+-  }: RegisterUseCaseRequest) {
+-    const password_hash = await hash(password, 6)
+-
++  }: RegisterOrgUseCaseRequest): Promise<RegisterOrgUseCaseResponse> {
+     const orgWithSameEmail = await this.orgsRepository.findByEmail(email)
+ 
+     if (orgWithSameEmail) {
+       throw new OrgAlreadyExistsError()
+     }
+ 
+-    await this.orgsRepository.create({
++    const password_hash = await hash(password, 6)
++
++    const org = await this.orgsRepository.create({
+       name,
+       email,
+       password_hash,
+@@ -38,5 +43,7 @@ export class RegisterUseCase {
+       address,
+       city,
+     })
++
++    return { org }
+   }
+-}
+\ No newline at end of file
++}
+diff --git a/Find_A_Friend_API/src/use-cases/register.spec.ts b/Find_A_Friend_API/src/use-cases/register.spec.ts
+deleted file mode 100644
+index c257fe0..0000000
+--- a/Find_A_Friend_API/src/use-cases/register.spec.ts
++++ /dev/null
+@@ -1,53 +0,0 @@
+-import { InMemoryUsersRepository } from '@/repositories/in-memory/in-memory-users-repository'
+-import { UserAlreadyExistsError } from '@/use-cases/errors/user-already-exists-error'
+-import { compare } from 'bcryptjs'
+-import { expect, describe, it } from 'vitest'
+-import { RegisterUseCase } from './org/register'
+-
+-describe('Register Use Case', () => {
+-   it('should to register', async () => {
+-    const usersRepository = new InMemoryUsersRepository()
+-    const registerUseCase = new RegisterUseCase(usersRepository)
+-
+-    const { user } = await registerUseCase.execute({
+-      name: 'John Doe',
+-      email: 'johndoe@example.com',
+-      password: '123456',
+-    })
+-
+-        expect(user.id).toEqual(expect.any(String))
+-  })
+-
+-  it('should hash user password upon registration', async () => {
+-    const usersRepository = new InMemoryUsersRepository()
+-    const registerUseCase = new RegisterUseCase(usersRepository)
+-
+-    const isPasswordCorrectlyHashed = await compare(
+-      '123456',
+-      user.password_hash,
+-    )
+-
+-    expect(isPasswordCorrectlyHashed).toBe(true)
+-  })
+-
+-  it('should not be able to register with same email twice', async () => {
+-    const usersRepository = new InMemoryUsersRepository()
+-    const registerUseCase = new RegisterUseCase(usersRepository)
+-
+-    const email = 'johndoe@example.com'
+-
+-    await registerUseCase.execute({
+-      name: 'John Doe',
+-      email,
+-      password: '123456',
+-    })
+-
+-    expect(() =>
+-      registerUseCase.execute({
+-        name: 'John Doe',
+-        email,
+-        password: '123456',
+-      }),
+-    ).rejects.toBeInstanceOf(UserAlreadyExistsError)
+-  })
+-})
+\ No newline at end of file
