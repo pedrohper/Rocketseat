@@ -2,28 +2,33 @@ import { InMemoryOrgsRepository } from '@/repositories/in-memory/in-memory-orgs-
 import { AuthenticateUseCase } from '@/use-cases/authenticate'
 import { InvalidCredentialsError } from '@/use-cases/errors/invalid-credentials-error'
 import { hash } from 'bcryptjs'
-import { expect, describe, it, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 
 let orgsRepository: InMemoryOrgsRepository
 let sut: AuthenticateUseCase
 
+const orgData = {
+  name: 'Amigos de Patas',
+  email: 'contato@amigosdepatas.com',
+  whatsapp: '34999999999',
+  address: 'Rua Exemplo, 100',
+  city: 'Uberlândia',
+}
+
 describe('Authenticate Use Case', () => {
-    
-    beforeEach(() => {
-      orgsRepository = new InMemoryOrgsRepository()
-      sut = new AuthenticateUseCase(orgsRepository)
-    })
+  beforeEach(() => {
+    orgsRepository = new InMemoryOrgsRepository()
+    sut = new AuthenticateUseCase(orgsRepository)
+  })
 
-    it('should be able to authenticate', async () => {
-
+  it('should be able to authenticate', async () => {
     await orgsRepository.create({
-      name: 'John Doe',
-      email: 'johndoe@example.com',
+      ...orgData,
       password_hash: await hash('123456', 6),
     })
 
     const { org } = await sut.execute({
-      email: 'johndoe@example.com',
+      email: 'contato@amigosdepatas.com',
       password: '123456',
     })
 
@@ -31,24 +36,23 @@ describe('Authenticate Use Case', () => {
   })
 
   it('should not be able to authenticate with wrong email', async () => {
-    expect(() =>
+    await expect(() =>
       sut.execute({
-        email: 'johndoe@example.com',
+        email: 'contato@amigosdepatas.com',
         password: '123456',
       }),
     ).rejects.toBeInstanceOf(InvalidCredentialsError)
   })
 
-  it('should not be able to authenticate with wrong email', async () => {
+  it('should not be able to authenticate with wrong password', async () => {
     await orgsRepository.create({
-      name: 'John Doe',
-      email: 'johndoe@example.com',
+      ...orgData,
       password_hash: await hash('123456', 6),
     })
 
-    expect(() =>
+    await expect(() =>
       sut.execute({
-        email: 'johndoe@example.com',
+        email: 'contato@amigosdepatas.com',
         password: '123123',
       }),
     ).rejects.toBeInstanceOf(InvalidCredentialsError)

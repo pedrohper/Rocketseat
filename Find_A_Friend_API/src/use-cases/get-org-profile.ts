@@ -1,9 +1,9 @@
 import { OrgsRepository } from '@/repositories/orgs-repository'
-import { Org } from '@prisma/client'
 import { ResourceNotFoundError } from '@/use-cases/errors/resource-not-found-error'
+import { Org } from '@prisma/client'
 
 interface GetOrgProfileUseCaseRequest {
-  userId: string
+  orgId: string
 }
 
 interface GetOrgProfileUseCaseResponse {
@@ -14,16 +14,14 @@ export class GetOrgProfileUseCase {
   constructor(private orgsRepository: OrgsRepository) {}
 
   async execute({
-    userId,
+    orgId,
   }: GetOrgProfileUseCaseRequest): Promise<GetOrgProfileUseCaseResponse> {
-    const org = await this.orgsRepository.findById(userId)
+    const org = await this.orgsRepository.findById(orgId)
 
     if (!org) {
       throw new ResourceNotFoundError()
     }
 
-    return {
-      org,
-    }
+    return { org }
   }
 }

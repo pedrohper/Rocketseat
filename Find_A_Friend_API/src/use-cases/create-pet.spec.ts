@@ -19,8 +19,8 @@ const petData = {
 
 describe('Create Pet Use Case', () => {
   beforeEach(() => {
-    petsRepository = new InMemoryPetsRepository()
     orgsRepository = new InMemoryOrgsRepository()
+    petsRepository = new InMemoryPetsRepository(orgsRepository)
     sut = new CreatePetUseCase(petsRepository, orgsRepository)
   })
 

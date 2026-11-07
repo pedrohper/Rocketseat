@@ -1,9 +1,7 @@
-
+import { InvalidCredentialsError } from '@/use-cases/errors/invalid-credentials-error'
+import { makeAuthenticateUseCase } from '@/use-cases/factories/make-authenticate-use-case'
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
-import { PrismaOrgsRepository } from '@/repositories/prisma/prisma-orgs-repository'
-import { AuthenticateUseCase } from '@/use-cases/authenticate'
-import { InvalidCredentialsError } from '@/use-cases/errors/invalid-credentials-error'
 
 export async function authenticate(
   request: FastifyRequest,
@@ -17,13 +15,9 @@ export async function authenticate(
   const { email, password } = authenticateBodySchema.parse(request.body)
 
   try {
-    const orgsRepository = new PrismaOrgsRepository()
-    const authenticateUseCase = new AuthenticateUseCase(orgsRepository)
+    const authenticateUseCase = makeAuthenticateUseCase()
 
-    await authenticateUseCase.execute({
-      email,
-      password,
-    })
+    await authenticateUseCase.execute({ email, password })
   } catch (err) {
     if (err instanceof InvalidCredentialsError) {
       return reply.status(400).send({ message: err.message })
@@ -32,5 +26,6 @@ export async function authenticate(
     throw err
   }
 
+  // TODO: quando o JWT estiver pronto, devolver o token aqui
   return reply.status(200).send()
 }

@@ -17,7 +17,6 @@ export async function create(request: FastifyRequest, reply: FastifyReply) {
     environment: z.string(),
   })
 
-  // TODO: quando o login (JWT) estiver pronto, trocar por request.user.sub
   const { orgId } = createPetParamsSchema.parse(request.params)
   const data = createPetBodySchema.parse(request.body)
 

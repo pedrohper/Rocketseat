@@ -1,18 +1,27 @@
-
 import { prisma } from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
-import { PetsRepository } from '../pets-repository'
+import { FindAllParams, PetsRepository } from '../pets-repository'
 
 export class PrismaPetsRepository implements PetsRepository {
   async create(data: Prisma.PetUncheckedCreateInput) {
     return prisma.pet.create({ data })
   }
 
-  async findManyNearby(params: FindManyNearbyParams){
-    return prisma.pet.findMany.findManyNearby({ where: { org: {city: params.city}} })
+  async findAll({ city, age, size, energy_level, environment }: FindAllParams) {
+    // Filtros com valor undefined são ignorados pelo Prisma,
+    // então só a cidade é obrigatória.
+    return prisma.pet.findMany({
+      where: {
+        age,
+        size,
+        energy_level,
+        environment,
+        org: { city },
+      },
+    })
   }
-  
-  async findById(id: string){
+
+  async findById(id: string) {
     return prisma.pet.findUnique({ where: { id } })
   }
 }

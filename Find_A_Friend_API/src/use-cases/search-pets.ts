@@ -2,8 +2,11 @@ import { PetsRepository } from '@/repositories/pets-repository'
 import { Pet } from '@prisma/client'
 
 interface SearchPetsUseCaseRequest {
-  query: string
-  page: number
+  city: string
+  age?: string
+  size?: string
+  energyLevel?: string
+  environment?: string
 }
 
 interface SearchPetsUseCaseResponse {
@@ -14,13 +17,20 @@ export class SearchPetsUseCase {
   constructor(private petsRepository: PetsRepository) {}
 
   async execute({
-    query,
-    page,
+    city,
+    age,
+    size,
+    energyLevel,
+    environment,
   }: SearchPetsUseCaseRequest): Promise<SearchPetsUseCaseResponse> {
-    const pets = await this.petsRepository.searchMany(query, page)
+    const pets = await this.petsRepository.findAll({
+      city,
+      age,
+      size,
+      energy_level: energyLevel,
+      environment,
+    })
 
-    return {
-      pets,
-    }
+    return { pets }
   }
 }

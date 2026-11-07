@@ -17,8 +17,8 @@ app.setErrorHandler((error, _, reply) => {
     if(env.NODE_ENV != 'production'){
         console.error(error)
     } else {
-
+        // TODO: aqui deveria logar em uma ferramenta externa (ex: Sentry)
     }
 
     return reply.status(500).send({ message:'error'})
-})
+})
